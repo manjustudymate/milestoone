@@ -1,3 +1,6 @@
 hi this is first line and just now updated and this is third change
+<<<<<<< HEAD
 time is 0911
 time is 0912
+=======
+>>>>>>> fe0d4b55e46c83375e2c3ef765cd0c855a954a0e

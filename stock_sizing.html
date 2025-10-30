@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Position Sizing Calculator</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background: #1e293b;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      padding: 25px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #38bdf8;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      background: #334155;
+      color: #f9fafb;
+    }
+
+    input:focus {
+      border: 2px solid #38bdf8;
+    }
+
+    button {
+      width: 100%;
+      background: #38bdf8;
+      color: #111827;
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+    }
+
+    .results {
+      margin-top: 20px;
+      background: #0f172a;
+      border-radius: 15px;
+      padding: 15px;
+    }
+
+    .results p {
+      margin: 8px 0;
+      font-size: 1rem;
+    }
+
+    .highlight {
+      color: #22c55e;
+      font-weight: 600;
+    }
+
+    @media (max-width: 480px) {
+      .title {
+        font-size: 1.4rem;
+      }
+
+      button {
+        padding: 10px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">📈 Stock Position Sizing</div>
+
+    <div class="input-group">
+      <label>Total Capital (₹)</label>
+      <input type="number" id="capital" placeholder="e.g. 100000" />
+    </div>
+
+    <div class="input-group">
+      <label>Risk per Trade (%)</label>
+      <input type="number" id="riskPercent" placeholder="e.g. 2" />
+    </div>
+
+    <div class="input-group">
+      <label>Entry Price (₹)</label>
+      <input type="number" id="entryPrice" placeholder="e.g. 250" />
+    </div>
+
+    <div class="input-group">
+      <label>Stop Loss Price (₹)</label>
+      <input type="number" id="stopLoss" placeholder="e.g. 240" />
+    </div>
+
+    <button onclick="calculate()">Calculate Position Size</button>
+
+    <div class="results" id="results" style="display:none;">
+      <p>💰 Risk Amount: <span class="highlight" id="riskAmount"></span></p>
+      <p>📊 Quantity to Buy: <span class="highlight" id="quantity"></span></p>
+      <p>💼 Total Investment: <span class="highlight" id="investment"></span></p>
+    </div>
+  </div>
+
+  <script>
+    function calculate() {
+      const capital = parseFloat(document.getElementById('capital').value);
+      const riskPercent = parseFloat(document.getElementById('riskPercent').value);
+      const entry = parseFloat(document.getElementById('entryPrice').value);
+      const stop = parseFloat(document.getElementById('stopLoss').value);
+      const resultDiv = document.getElementById('results');
+
+      if (!capital || !riskPercent || !entry || !stop || stop >= entry) {
+        alert("⚠️ Please enter valid inputs. Stop loss must be below entry price.");
+        resultDiv.style.display = 'none';
+        return;
+      }
+
+      const riskAmount = (capital * riskPercent) / 100;
+      const perShareRisk = entry - stop;
+      const quantity = Math.floor(riskAmount / perShareRisk);
+      const investment = (quantity * entry).toFixed(2);
+
+      document.getElementById('riskAmount').innerText = "₹ " + riskAmount.toFixed(2);
+      document.getElementById('quantity').innerText = quantity + " shares";
+      document.getElementById('investment').innerText = "₹ " + investment;
+      resultDiv.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

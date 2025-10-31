@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stock Position Sizing Calculator</title>
+  <title>📊 Stock Position Sizing Calculator</title>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -23,7 +23,7 @@
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
       padding: 25px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
     }
 
     .title {
@@ -34,19 +34,44 @@
       color: #38bdf8;
     }
 
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0f172a;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #94a3b8;
+    }
+
+    .tab.active {
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
     .input-group {
+      position: relative;
       margin-bottom: 15px;
     }
 
     label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
       font-weight: 500;
     }
 
     input {
-      width: 100%;
-      padding: 10px;
+      width: 84%;
+      padding: 12px 55px 12px 12px;
       border-radius: 10px;
       border: none;
       outline: none;
@@ -57,6 +82,34 @@
 
     input:focus {
       border: 2px solid #38bdf8;
+    }
+
+    /* Switch inside input */
+    .switch-container {
+      position: absolute;
+      right: 10px;
+      top: 66%;
+      transform: translateY(-50%);
+      background: #0f172a;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid #38bdf8;
+    }
+
+    .switch-btn {
+      padding: 4px 10px;
+      font-size: 0.9rem;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .switch-btn.active {
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: 600;
     }
 
     button {
@@ -70,6 +123,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
+      margin-top: 10px;
     }
 
     button:hover {
@@ -81,6 +135,7 @@
       background: #0f172a;
       border-radius: 15px;
       padding: 15px;
+      display: none;
     }
 
     .results p {
@@ -93,15 +148,40 @@
       font-weight: 600;
     }
 
-    @media (max-width: 480px) {
-      .title {
-        font-size: 1.4rem;
-      }
+    /* Modal popup */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+    }
 
-      button {
-        padding: 10px;
-        font-size: 0.95rem;
-      }
+    .modal-content {
+      background: #1e293b;
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      color: #f9fafb;
+      width: 90%;
+      max-width: 320px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content h3 {
+      color: #38bdf8;
+      margin-bottom: 10px;
+    }
+
+    .modal-content button {
+      margin-top: 15px;
+      width: auto;
+      background: #38bdf8;
+      color: #0f172a;
     }
   </style>
 </head>
@@ -109,57 +189,174 @@
   <div class="container">
     <div class="title">📈 Stock Position Sizing</div>
 
-    <div class="input-group">
-      <label>Total Capital (₹)</label>
-      <input type="number" id="capital" placeholder="e.g. 100000" />
+    <div class="tabs">
+      <div class="tab active" id="riskTab" onclick="switchTab('risk')">Risk-Based</div>
+      <div class="tab" id="allocTab" onclick="switchTab('allocation')">Allocation-Based</div>
     </div>
 
-    <div class="input-group">
-      <label>Risk per Trade (%)</label>
-      <input type="number" id="riskPercent" placeholder="e.g. 2" />
+    <!-- Risk-based -->
+    <div id="riskBased">
+      <div class="input-group">
+        <label>Total Capital (₹)</label>
+        <input type="number" id="capital" placeholder="e.g. 100000" />
+      </div>
+
+      <div class="input-group">
+        <label>Risk per Trade</label>
+        <input type="number" id="riskValue" placeholder="Enter risk" />
+        <div class="switch-container">
+          <div id="percentBtn" class="switch-btn active" onclick="setMode('%')">%</div>
+          <div id="rupeeBtn" class="switch-btn" onclick="setMode('₹')">₹</div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Entry Price (₹)</label>
+        <input type="number" id="entryPrice" placeholder="e.g. 250" />
+      </div>
+
+      <div class="input-group">
+        <label>Stop Loss Price (₹)</label>
+        <input type="number" id="stopLoss" placeholder="e.g. 240" />
+      </div>
+
+      <div class="input-group">
+        <label>Target Price (optional)</label>
+        <input type="number" id="targetPrice" placeholder="e.g. 270" />
+      </div>
+
+      <button onclick="calculateRisk()">Calculate</button>
     </div>
 
-    <div class="input-group">
-      <label>Entry Price (₹)</label>
-      <input type="number" id="entryPrice" placeholder="e.g. 250" />
+    <!-- Allocation-based -->
+    <div id="allocationBased" style="display: none;">
+      <div class="input-group">
+        <label>Total Capital (₹)</label>
+        <input type="number" id="allocCapital" placeholder="e.g. 100000" />
+      </div>
+
+      <div class="input-group">
+        <label>Allocation per Trade</label>
+        <input type="number" id="allocValue" placeholder="Enter %" />
+        <div class="switch-container">
+          <div id="allocPercentBtn" class="switch-btn active" onclick="setAllocMode('%')">%</div>
+          <div id="allocRupeeBtn" class="switch-btn" onclick="setAllocMode('₹')">₹</div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Entry Price (₹)</label>
+        <input type="number" id="allocEntry" placeholder="e.g. 250" />
+      </div>
+
+      <button onclick="calculateAlloc()">Calculate</button>
     </div>
 
-    <div class="input-group">
-      <label>Stop Loss Price (₹)</label>
-      <input type="number" id="stopLoss" placeholder="e.g. 240" />
-    </div>
+    <div class="results" id="results"></div>
+  </div>
 
-    <button onclick="calculate()">Calculate Position Size</button>
-
-    <div class="results" id="results" style="display:none;">
-      <p>💰 Risk Amount: <span class="highlight" id="riskAmount"></span></p>
-      <p>📊 Quantity to Buy: <span class="highlight" id="quantity"></span></p>
-      <p>💼 Total Investment: <span class="highlight" id="investment"></span></p>
+  <!-- Modal -->
+  <div class="modal" id="popup">
+    <div class="modal-content">
+      <h3>⚠️ Missing Information</h3>
+      <p>Please enter all mandatory fields.</p>
+      <button onclick="closePopup()">OK</button>
     </div>
   </div>
 
   <script>
-    function calculate() {
+    let mode = '%';
+    let allocMode = '%';
+
+    function setMode(selected) {
+      mode = selected;
+      document.getElementById('percentBtn').classList.toggle('active', selected === '%');
+      document.getElementById('rupeeBtn').classList.toggle('active', selected === '₹');
+    }
+
+    function setAllocMode(selected) {
+      allocMode = selected;
+      document.getElementById('allocPercentBtn').classList.toggle('active', selected === '%');
+      document.getElementById('allocRupeeBtn').classList.toggle('active', selected === '₹');
+    }
+
+    function switchTab(tab) {
+      const risk = document.getElementById('riskBased');
+      const alloc = document.getElementById('allocationBased');
+      const rtab = document.getElementById('riskTab');
+      const atab = document.getElementById('allocTab');
+      if (tab === 'risk') {
+        risk.style.display = 'block';
+        alloc.style.display = 'none';
+        rtab.classList.add('active');
+        atab.classList.remove('active');
+      } else {
+        risk.style.display = 'none';
+        alloc.style.display = 'block';
+        rtab.classList.remove('active');
+        atab.classList.add('active');
+      }
+      document.getElementById('results').style.display = 'none';
+    }
+
+    function showPopup() {
+      document.getElementById('popup').style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+
+    function calculateRisk() {
       const capital = parseFloat(document.getElementById('capital').value);
-      const riskPercent = parseFloat(document.getElementById('riskPercent').value);
+      const riskValue = parseFloat(document.getElementById('riskValue').value);
       const entry = parseFloat(document.getElementById('entryPrice').value);
       const stop = parseFloat(document.getElementById('stopLoss').value);
+      const target = parseFloat(document.getElementById('targetPrice').value);
       const resultDiv = document.getElementById('results');
 
-      if (!capital || !riskPercent || !entry || !stop || stop >= entry) {
-        alert("⚠️ Please enter valid inputs. Stop loss must be below entry price.");
-        resultDiv.style.display = 'none';
+      if (!capital || !riskValue || !entry || !stop || stop >= entry) {
+        showPopup();
         return;
       }
 
-      const riskAmount = (capital * riskPercent) / 100;
+      const riskAmt = mode === '%' ? (capital * riskValue) / 100 : riskValue;
       const perShareRisk = entry - stop;
-      const quantity = Math.floor(riskAmount / perShareRisk);
+      const quantity = Math.floor(riskAmt / perShareRisk);
+      const investment = (quantity * entry).toFixed(2);
+      const rr = target ? ((target - entry) / (entry - stop)).toFixed(2) : null;
+
+      let resultHTML = `
+        <p>💰 Risk Amount: <span class="highlight">₹ ${riskAmt.toFixed(2)}</span></p>
+        <p>📊 Quantity to Buy: <span class="highlight">${quantity} shares</span></p>
+        <p>💼 Total Investment: <span class="highlight">₹ ${investment}</span></p>`;
+      if (target) {
+        resultHTML += `<p>🎯 Risk/Reward Ratio: <span class="highlight">${rr}:1</span></p>`;
+      }
+
+      resultDiv.innerHTML = resultHTML;
+      resultDiv.style.display = 'block';
+    }
+
+    function calculateAlloc() {
+      const capital = parseFloat(document.getElementById('allocCapital').value);
+      const allocVal = parseFloat(document.getElementById('allocValue').value);
+      const entry = parseFloat(document.getElementById('allocEntry').value);
+      const resultDiv = document.getElementById('results');
+
+      if (!capital || !allocVal || !entry) {
+        showPopup();
+        return;
+      }
+
+      const allocAmt = allocMode === '%' ? (capital * allocVal) / 100 : allocVal;
+      const quantity = Math.floor(allocAmt / entry);
       const investment = (quantity * entry).toFixed(2);
 
-      document.getElementById('riskAmount').innerText = "₹ " + riskAmount.toFixed(2);
-      document.getElementById('quantity').innerText = quantity + " shares";
-      document.getElementById('investment').innerText = "₹ " + investment;
+      resultDiv.innerHTML = `
+        <p>💼 Allocation Amount: <span class="highlight">₹ ${allocAmt.toFixed(2)}</span></p>
+        <p>📊 Quantity to Buy: <span class="highlight">${quantity} shares</span></p>
+        <p>💰 Total Investment: <span class="highlight">₹ ${investment}</span></p>`;
       resultDiv.style.display = 'block';
     }
   </script>

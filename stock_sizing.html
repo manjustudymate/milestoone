@@ -183,33 +183,33 @@
       background: #38bdf8;
       color: #0f172a;
     }
-	@media (max-width: 480px) {
-  input {
-    width: 75%; /* Let it take full width */
-    padding-right: 60px; /* Enough space for switch */
-  }
 
-  .switch-container {
-    top: 66%; /* Re-center for mobile */
-    right: 8px;
-    transform: translateY(-50%);
-    scale: 0.9; /* Slightly smaller toggle for mobile */
-  }
+    @media (max-width: 480px) {
+      input {
+        width: 100%;
+        padding-right: 60px;
+      }
 
-  .container {
-    padding: 20px;
-  }
+      .switch-container {
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        scale: 0.9;
+      }
 
-  button {
-    font-size: 0.95rem;
-    padding: 10px;
-  }
+      .container {
+        padding: 20px;
+      }
 
-  label {
-    font-size: 0.9rem;
-  }
-}
+      button {
+        font-size: 0.95rem;
+        padding: 10px;
+      }
 
+      label {
+        font-size: 0.9rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -264,7 +264,7 @@
 
       <div class="input-group">
         <label>Allocation per Trade</label>
-        <input type="number" id="allocValue" placeholder="Enter risk" />
+        <input type="number" id="allocValue" placeholder="Enter allocation" />
         <div class="switch-container">
           <div id="allocPercentBtn" class="switch-btn active" onclick="setAllocMode('%')">%</div>
           <div id="allocRupeeBtn" class="switch-btn" onclick="setAllocMode('₹')">₹</div>
@@ -292,101 +292,126 @@
   </div>
 
   <script>
-    let mode = '%';
-    let allocMode = '%';
+  let mode = '%';
+  let allocMode = '%';
 
-    function setMode(selected) {
-      mode = selected;
-      document.getElementById('percentBtn').classList.toggle('active', selected === '%');
-      document.getElementById('rupeeBtn').classList.toggle('active', selected === '₹');
+  function setMode(selected) {
+    mode = selected;
+    document.getElementById('percentBtn').classList.toggle('active', selected === '%');
+    document.getElementById('rupeeBtn').classList.toggle('active', selected === '₹');
+  }
+
+  function setAllocMode(selected) {
+    allocMode = selected;
+    document.getElementById('allocPercentBtn').classList.toggle('active', selected === '%');
+    document.getElementById('allocRupeeBtn').classList.toggle('active', selected === '₹');
+  }
+
+  function switchTab(tab) {
+    const risk = document.getElementById('riskBased');
+    const alloc = document.getElementById('allocationBased');
+    const rtab = document.getElementById('riskTab');
+    const atab = document.getElementById('allocTab');
+    if (tab === 'risk') {
+      risk.style.display = 'block';
+      alloc.style.display = 'none';
+      rtab.classList.add('active');
+      atab.classList.remove('active');
+    } else {
+      risk.style.display = 'none';
+      alloc.style.display = 'block';
+      rtab.classList.remove('active');
+      atab.classList.add('active');
+    }
+    document.getElementById('results').style.display = 'none';
+  }
+
+  function showPopup() {
+    document.getElementById('popup').style.display = 'flex';
+  }
+
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+  }
+
+  function calculateRisk() {
+    const capital = parseFloat(document.getElementById('capital').value);
+    const riskValue = parseFloat(document.getElementById('riskValue').value);
+    const entry = parseFloat(document.getElementById('entryPrice').value);
+    const stop = parseFloat(document.getElementById('stopLoss').value);
+    const target = parseFloat(document.getElementById('targetPrice').value);
+    const resultDiv = document.getElementById('results');
+
+    if (!capital || !riskValue || !entry || !stop || stop >= entry) {
+      showPopup();
+      return;
     }
 
-    function setAllocMode(selected) {
-      allocMode = selected;
-      document.getElementById('allocPercentBtn').classList.toggle('active', selected === '%');
-      document.getElementById('allocRupeeBtn').classList.toggle('active', selected === '₹');
+    const riskAmt = mode === '%' ? (capital * riskValue) / 100 : riskValue;
+    const perShareRisk = entry - stop;
+    let quantity = Math.floor(riskAmt / perShareRisk);
+    let investment = quantity * entry;
+
+    // If investment exceeds total capital, adjust it
+    let warning = '';
+    if (investment > capital) {
+      const excess = investment - capital;
+      const adjustedQty = Math.floor(capital / entry);
+      quantity = adjustedQty;
+      investment = quantity * entry;
+      warning = `<p style="color:#fbbf24;">⚠️ Investment exceeded capital by ₹${excess.toFixed(2)} — adjusted to ₹${investment.toFixed(2)}.</p>`;
     }
 
-    function switchTab(tab) {
-      const risk = document.getElementById('riskBased');
-      const alloc = document.getElementById('allocationBased');
-      const rtab = document.getElementById('riskTab');
-      const atab = document.getElementById('allocTab');
-      if (tab === 'risk') {
-        risk.style.display = 'block';
-        alloc.style.display = 'none';
-        rtab.classList.add('active');
-        atab.classList.remove('active');
-      } else {
-        risk.style.display = 'none';
-        alloc.style.display = 'block';
-        rtab.classList.remove('active');
-        atab.classList.add('active');
-      }
-      document.getElementById('results').style.display = 'none';
+    const rr = target ? ((target - entry) / (entry - stop)).toFixed(2) : null;
+    const profit = target ? ((target - entry) * quantity).toFixed(2) : null;
+
+    let resultHTML = `
+      <p>💰 Risk Amount: <span class="highlight">₹ ${riskAmt.toFixed(2)}</span></p>
+      <p>📊 Quantity to Buy: <span class="highlight">${quantity} shares</span></p>
+      <p>💼 Total Investment: <span class="highlight">₹ ${investment.toFixed(2)}</span></p>
+      ${warning}`;
+
+    if (target) {
+      resultHTML += `
+        <p>💹 Potential Profit: <span class="highlight">₹ ${profit}</span></p>
+        <p>🎯 Risk : Reward = <span class="highlight">1 : ${rr}</span></p>`;
     }
 
-    function showPopup() {
-      document.getElementById('popup').style.display = 'flex';
+    resultDiv.innerHTML = resultHTML;
+    resultDiv.style.display = 'block';
+  }
+
+  function calculateAlloc() {
+    const capital = parseFloat(document.getElementById('allocCapital').value);
+    const allocVal = parseFloat(document.getElementById('allocValue').value);
+    const entry = parseFloat(document.getElementById('allocEntry').value);
+    const resultDiv = document.getElementById('results');
+
+    if (!capital || !allocVal || !entry) {
+      showPopup();
+      return;
     }
 
-    function closePopup() {
-      document.getElementById('popup').style.display = 'none';
+    const allocAmt = allocMode === '%' ? (capital * allocVal) / 100 : allocVal;
+    const quantity = Math.floor(allocAmt / entry);
+    const investment = (quantity * entry).toFixed(2);
+    const unused = allocAmt - investment;
+
+    let resultHTML = `
+      <p>💼 Allocation Amount: <span class="highlight">₹ ${allocAmt.toFixed(2)}</span></p>
+      <p>📊 Quantity to Buy: <span class="highlight">${quantity} shares</span></p>
+      <p>💰 Total Investment: <span class="highlight">₹ ${investment}</span></p>`;
+
+    if (unused > 0) {
+      resultHTML += `<p style="color:#94a3b8;">💤 Unused Funds: ₹ ${unused.toFixed(2)}</p>`;
     }
 
-    function calculateRisk() {
-      const capital = parseFloat(document.getElementById('capital').value);
-      const riskValue = parseFloat(document.getElementById('riskValue').value);
-      const entry = parseFloat(document.getElementById('entryPrice').value);
-      const stop = parseFloat(document.getElementById('stopLoss').value);
-      const target = parseFloat(document.getElementById('targetPrice').value);
-      const resultDiv = document.getElementById('results');
+    resultDiv.innerHTML = resultHTML;
+    resultDiv.style.display = 'block';
+  }
+</script>
 
-      if (!capital || !riskValue || !entry || !stop || stop >= entry) {
-        showPopup();
-        return;
-      }
-
-      const riskAmt = mode === '%' ? (capital * riskValue) / 100 : riskValue;
-      const perShareRisk = entry - stop;
-      const quantity = Math.floor(riskAmt / perShareRisk);
-      const investment = (quantity * entry).toFixed(2);
-      const rr = target ? ((target - entry) / (entry - stop)).toFixed(2) : null;
-
-      let resultHTML = `
-        <p>💰 Risk Amount: <span class="highlight">₹ ${riskAmt.toFixed(2)}</span></p>
-        <p>📊 Quantity to Buy: <span class="highlight">${quantity} shares</span></p>
-        <p>💼 Total Investment: <span class="highlight">₹ ${investment}</span></p>`;
-      if (target) {
-        resultHTML += `<p>🎯 Risk/Reward Ratio: <span class="highlight">${rr}:1</span></p>`;
-      }
-
-      resultDiv.innerHTML = resultHTML;
-      resultDiv.style.display = 'block';
-    }
-
-    function calculateAlloc() {
-      const capital = parseFloat(document.getElementById('allocCapital').value);
-      const allocVal = parseFloat(document.getElementById('allocValue').value);
-      const entry = parseFloat(document.getElementById('allocEntry').value);
-      const resultDiv = document.getElementById('results');
-
-      if (!capital || !allocVal || !entry) {
-        showPopup();
-        return;
-      }
-
-      const allocAmt = allocMode === '%' ? (capital * allocVal) / 100 : allocVal;
-      const quantity = Math.floor(allocAmt / entry);
-      const investment = (quantity * entry).toFixed(2);
-
-      resultDiv.innerHTML = `
-        <p>💼 Allocation Amount: <span class="highlight">₹ ${allocAmt.toFixed(2)}</span></p>
-        <p>📊 Quantity to Buy: <span class="highlight">${quantity} shares</span></p>
-        <p>💰 Total Investment: <span class="highlight">₹ ${investment}</span></p>`;
-      resultDiv.style.display = 'block';
-    }
-  </script>
 </body>
 </html>
+
 

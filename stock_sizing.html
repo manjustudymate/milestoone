@@ -183,6 +183,33 @@
       background: #38bdf8;
       color: #0f172a;
     }
+	@media (max-width: 480px) {
+  input {
+    width: 75%; /* Let it take full width */
+    padding-right: 60px; /* Enough space for switch */
+  }
+
+  .switch-container {
+    top: 66%; /* Re-center for mobile */
+    right: 8px;
+    transform: translateY(-50%);
+    scale: 0.9; /* Slightly smaller toggle for mobile */
+  }
+
+  .container {
+    padding: 20px;
+  }
+
+  button {
+    font-size: 0.95rem;
+    padding: 10px;
+  }
+
+  label {
+    font-size: 0.9rem;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -362,3 +389,4 @@
   </script>
 </body>
 </html>
+
